@@ -8,26 +8,27 @@ request(apiUrl, function (error, response, body) {
   if (!error && response.statusCode === 200) {
     try {
       const todos = JSON.parse(body);
-
       const completed = {};
 
       todos.forEach((todo) => {
         if (todo.completed) {
-          if (completed[todo.userId] === undefined) {
-            completed[todo.userId] = 1;
-          } else {
-            completed[todo.userId]++;
+          if (!completed[todo.userId]) {
+            completed[todo.userId] = 0;
           }
+          completed[todo.userId]++;
         }
       });
 
-      const output = `{${Object.entries(completed).map(([key, value]) => ` '${key}': ${value}`).join(',\n ')} }`;
+      const userStats = Object.entries(completed).map(([userId, count]) => ({
+        userId: userId,
+        completedTasks: count
+      }));
 
-      console.log(Object.keys(completed).length > 2 ? output : completed);
+      console.log(userStats.length > 0 ? JSON.stringify(userStats, null, 2) : 'No completed tasks found.');
     } catch (parseError) {
       console.error('Error parsing JSON:', parseError);
     }
   } else {
-    console.error('Error:', error);
+    console.error('Error fetching data from the API:', error);
   }
 });
